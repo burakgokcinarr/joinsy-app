@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -53,8 +53,27 @@ export default function TravelScreen() {
   const { location, setLocation, clearLocation } = useLocationStore()
   
   const [radius, setRadius] = useState(200);
+  const mapRef              = useRef(null);
   const filteredEvents = DUMMY_DATA.filter(event => event.distance <= radius);
   const totalEvents = filteredEvents.reduce((sum, event) => sum + event.events, 0);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const baseLat = location?.latitude ?? 51.709082;
+    const baseLng = location?.longitude ?? 7.480058;
+
+    // km’yi delta’ya çevir (basit hesaplama, dünya genişliğine göre)
+    const latDelta = radius / 111; // 1 derece ~ 111 km
+    const lngDelta = radius / 111;
+
+    mapRef.current.animateToRegion({
+      latitude: baseLat,
+      longitude: baseLng,
+      latitudeDelta: latDelta,
+      longitudeDelta: lngDelta,
+    }, 500);
+  }, [radius, location]);
 
   return (
     <View style={styles.container}>
@@ -76,6 +95,7 @@ export default function TravelScreen() {
             
             <View style={styles.mapContainer}>
               <MapView
+                ref={mapRef}
                 style={[styles.mapContainer]}
                 initialRegion={{
                     latitude: location?.latitude ?? 51.709082,
@@ -83,9 +103,11 @@ export default function TravelScreen() {
                     latitudeDelta: 0.095,
                     longitudeDelta: 0.095
                 }}
+                zoomEnabled={true}
                 showsUserLocation={true}
                 showsMyLocationButton={true}
-                mapType='satellite'
+                mapType='standard'
+                focusable={true}
               >
                 {filteredEvents.map((event, index) => (
                   <Marker
@@ -122,7 +144,6 @@ export default function TravelScreen() {
                 step={25}
                 minimumTrackTintColor="#6366F1"
                 maximumTrackTintColor="#E5E7EB"
-                thumbStyle={styles.sliderThumb}
               />
               <View style={styles.sliderLabels}>
                 <Text style={styles.sliderLabelText}>50km</Text>

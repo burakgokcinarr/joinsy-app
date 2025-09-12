@@ -60,7 +60,7 @@ export default function MapDiscovery({ title, location, style }: Props) {
                 }}
                 showsUserLocation={true}
                 showsMyLocationButton={true}
-                mapType='satellite'
+                mapType='standard'
             >
                 {
                     DUMMY_DATA.map(event => (
